@@ -3,10 +3,13 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 class Environment:
-    def __init__(self, height = 20):
+    def __init__(self, height=20, rate=0.1):
         if height < 20:
             print('Height must be larger or equal to 20!!! Initialize the environment again!!!')
         else:
+            # Set frame_rate
+            self.rate = rate
+
             # Set arena
             self.height = height
             self.width = height // 2
@@ -24,9 +27,9 @@ class Environment:
             self.snake, self.snake_loc, self.momentum = [None] * 3
             self.head_y, self.head_x, self.second_x, self.second_y, self.tail_x, self.tail_y = [None] * 6
 
-    def render(self):
-        plt.ion()
-        plt.figure()
+            # Set image
+            plt.ion()
+            plt.figure()
 
     def start_new_game(self):
         # Set base, move and snake
@@ -54,6 +57,12 @@ class Environment:
 
         # Reset momentum
         self.momentum = 'L'
+
+        # Show initial stage
+        plt.clf()
+        plt.imshow(self.base + self.snake)
+        plt.pause(self.rate)
+
         return self.momentum
 
     def step(self, action):
@@ -64,10 +73,10 @@ class Environment:
         if action == 'N':
             action = self.momentum
 
-        # determine the momentum by the end of step
+        # determine the momentum
         self.momentum = action
 
-        # determine the locaiton of new_head if the action is implemented
+        # determine the location of new_head if the action is implemented
         if action == 'L':
             new_head_y = self.head_y
             new_head_x = self.head_x - 1
@@ -90,25 +99,23 @@ class Environment:
         '''determine result of action'''
         # lose the game if hitting edges
         if [new_head_y, new_head_x] in self.edges:
+            is_dead = True
             reward = -1
             self.experience_pool[-1].append(reward)
             print('You lose! You hit a wall!!!')
             print('Total score:' + str(self.score))
 
-            is_dead = True
-            return self.momentum, is_dead
-
         # lose the game if eating itself
         elif self.snake[new_head_y, new_head_x] >= 0.6:
+            is_dead = True
             reward = -1
             self.experience_pool[-1].append(reward)
             print('You lose! You ate yourself!!!')
             print('Total score:' + str(self.score))
 
-            is_dead = True
-            return self.momentum, is_dead
-
         else:
+            is_dead = False
+
             # score if the new_head reaches food
             if self.base[new_head_y, new_head_x] == 0.3:
                 reward = 1
@@ -128,9 +135,9 @@ class Environment:
                 self.snake[self.tail_y, self.tail_x] = 0.0
                 self.snake_loc.pop(-1)
 
-                # update current head and current tail
-                self.head_y, self.head_x = self.snake_loc[0]
-                self.tail_y, self.tail_x = self.snake_loc[-1]
+            # update current head and current tail
+            self.head_y, self.head_x = self.snake_loc[0]
+            self.tail_y, self.tail_x = self.snake_loc[-1]
 
             # generate new food if no food found
             if np.argwhere(self.base + self.snake == 0.3).size == 0:
@@ -139,11 +146,6 @@ class Environment:
 
             plt.clf()
             plt.imshow(self.base + self.snake)
-            plt.pause(0.1)
+            plt.pause(self.rate)
 
-            is_dead = False
-            return self.momentum, is_dead
-
-
-
-
+        return self.momentum, is_dead
