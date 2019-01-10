@@ -67,7 +67,8 @@ class Environment:
 
     def step(self, action):
         # add the game into experience pool
-        self.experience_pool.append([[self.base, self.snake], action])
+        state = [self.base.copy(), self.snake.copy()]
+        self.experience_pool.append([state, action])
 
         # determine new head of snake based on action
         if action == 'N':
@@ -148,7 +149,8 @@ class Environment:
             plt.imshow(self.base + self.snake)
             plt.pause(self.rate)
 
+        next_state = [self.base.copy(), self.snake.copy()]
         self.experience_pool[-1].append(reward)
-        self.experience_pool[-1].append([self.base + self.snake])
+        self.experience_pool[-1].append(next_state)
 
         return self.momentum, is_dead
