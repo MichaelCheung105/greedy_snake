@@ -97,55 +97,58 @@ class Environment:
             print('error')
 
         '''determine result of action'''
+        # update the snake_loc and snake board based on new move
+        self.snake[new_head_y, new_head_x] = 0.7
+        self.snake[self.head_y, self.head_x] = 0.6
+        self.snake[self.tail_y, self.tail_x] = 0.0
+        self.snake_loc = [[new_head_y, new_head_x]] + self.snake_loc
+
         # lose the game if hitting edges
         if [new_head_y, new_head_x] in self.edges:
             is_dead = True
             reward = -1
-            self.experience_pool[-1].append(reward)
             print('You lose! You hit a wall!!!')
             print('Total score:' + str(self.score))
 
         # lose the game if eating itself
-        elif self.snake[new_head_y, new_head_x] >= 0.6:
+        elif [new_head_y, new_head_x] in self.snake_loc[1:]:
             is_dead = True
             reward = -1
-            self.experience_pool[-1].append(reward)
             print('You lose! You ate yourself!!!')
             print('Total score:' + str(self.score))
 
         else:
             is_dead = False
 
-            # score if the new_head reaches food
-            if self.base[new_head_y, new_head_x] == 0.3:
-                reward = 1
-                self.experience_pool[-1].append(reward)
-                self.score += reward
-                print('Score!!! +' + str(reward) + ' point(s)')
-
-            # update the snake_loc and snake board based on new move
-            self.snake[new_head_y, new_head_x] = 0.7
-            self.snake[self.head_y, self.head_x] = 0.6
-            self.snake_loc = [[new_head_y, new_head_x]] + self.snake_loc
-
+            # if the food is at the tail of the snake, transform the food into the new tail of the snake
             if self.base[self.tail_y, self.tail_x] == 0.3:
                 self.base[self.tail_y, self.tail_x] = 0.0
-
+                self.snake[self.tail_y, self.tail_x] = 0.6
             else:
-                self.snake[self.tail_y, self.tail_x] = 0.0
                 self.snake_loc.pop(-1)
 
             # update current head and current tail
             self.head_y, self.head_x = self.snake_loc[0]
             self.tail_y, self.tail_x = self.snake_loc[-1]
 
-            # generate new food if no food found
-            if np.argwhere(self.base + self.snake == 0.3).size == 0:
+            # score if the new_head reaches food
+            if self.base[new_head_y, new_head_x] == 0.3:
+                reward = 1
+                self.score += reward
+                print('Score!!! +' + str(reward) + ' point(s)')
+
+                # generate new food
                 food_y, food_x = random.choice(np.argwhere(self.base + self.snake == 0))
                 self.base[food_y, food_x] = 0.3
+
+            else:
+                reward = 0
 
             plt.clf()
             plt.imshow(self.base + self.snake)
             plt.pause(self.rate)
+
+        self.experience_pool[-1].append(reward)
+        self.experience_pool[-1].append([self.base + self.snake])
 
         return self.momentum, is_dead
