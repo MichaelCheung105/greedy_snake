@@ -3,12 +3,12 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 class Environment:
-    def __init__(self, height=20, rate=0.1):
+    def __init__(self, height=20, frame_rate=0.1):
         if height < 20:
             print('Height must be larger or equal to 20!!! Initialize the environment again!!!')
         else:
             # Set frame_rate
-            self.rate = rate
+            self.rate = frame_rate
 
             # Set arena
             self.height = height
@@ -67,7 +67,7 @@ class Environment:
 
     def step(self, action):
         # add the game into experience pool
-        state = [self.base.copy(), self.snake.copy()]
+        state = np.stack([self.base, self.snake])
         self.experience_pool.append([state, action])
 
         # determine new head of snake based on action
@@ -149,7 +149,7 @@ class Environment:
             plt.imshow(self.base + self.snake)
             plt.pause(self.rate)
 
-        next_state = [self.base.copy(), self.snake.copy()]
+        next_state = np.stack([self.base, self.snake])
         self.experience_pool[-1].append(reward)
         self.experience_pool[-1].append(next_state)
 
