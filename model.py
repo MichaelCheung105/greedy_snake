@@ -27,12 +27,13 @@ class Net:
         self.model.compile(optimizer='adam', loss="mse")
 
     def suggest(self, state, action_space):
-        input = np.expand_dims(state, axis=0)
-        q_values = self.model.predict(input)
+        input_state = np.expand_dims(state, axis=0)
+        q_values = self.model.predict(input_state)
 
         if np.random.rand() < self.epsilon:
             action = random.choice(action_space)
         else:
             action = action_space[np.argmax(q_values)]
+
         return action
 
