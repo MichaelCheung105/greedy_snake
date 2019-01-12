@@ -15,15 +15,13 @@ class Environment:
             self.width = height // 2
             self.arena = np.zeros(shape=(self.height, self.width), dtype=float)
 
-            # Set experience_pool
-            self.experience_pool = []
-
             # Set the starting base, edges and score of each game
             self.base,  self.edges, self.score = [None] * 3
 
             # Set snake info of each game
             self.snake, self.snake_loc, self.momentum = [None] * 3
             self.head_y, self.head_x, self.second_x, self.second_y, self.tail_x, self.tail_y = [None] * 6
+            self.opposite_action = {'L': 'R', 'R': 'L', 'U': 'D', 'D': 'U'}
 
             # Set food info of each game
             self.food = None
@@ -51,6 +49,8 @@ class Environment:
         self.snake[self.tail_y, self.tail_x] = 0.6
         self.snake_loc = [[self.head_y, self.head_x], [self.second_y, self.second_x], [self.tail_y, self.tail_x]]
 
+        self.momentum = 'L'
+
         # Set food
         self.food = self.arena.copy()
 
@@ -61,47 +61,44 @@ class Environment:
         # Reset score
         self.score = 0
 
-        # Reset momentum
-        self.momentum = 'L'
-
         # Show initial stage
         plt.clf()
         plt.imshow(self.base + self.food + self.snake)
         plt.pause(self.frame_rate)
 
-        return self.momentum
+        state = np.stack([self.base, self.food, self.snake])
+        return state, self.momentum
 
     def step(self, action):
-        # add the game into experience pool
-        state = np.stack([self.base, self.food, self.snake])
-        self.experience_pool.append([state, action])
-
         # determine new head of snake based on action
-        if action == 'N':
-            action = self.momentum
+        if action == 'N' or self.opposite_action[action] == self.momentum:
+            processed_action = self.momentum
 
-        # determine the momentum
-        self.momentum = action
+        else:
+            processed_action = action
+
+        # update the momentum
+        self.momentum = processed_action
 
         # determine the location of new_head if the action is implemented
-        if action == 'L':
+        if processed_action == 'L':
             new_head_y = self.head_y
             new_head_x = self.head_x - 1
 
-        elif action == 'R':
+        elif processed_action == 'R':
             new_head_y = self.head_y
             new_head_x = self.head_x + 1
 
-        elif action == 'U':
+        elif processed_action == 'U':
             new_head_y = self.head_y - 1
             new_head_x = self.head_x
 
-        elif action == 'D':
+        elif processed_action == 'D':
             new_head_y = self.head_y + 1
             new_head_x = self.head_x
 
         else:
-            print('error')
+            return print('error: incorrect action input')
 
         '''determine result of action'''
         # update the snake_loc and snake board based on new move
@@ -114,15 +111,14 @@ class Environment:
         if [new_head_y, new_head_x] in self.edges:
             is_dead = True
             reward = -1
-            print('You lose! You hit a wall!!!')
-            print('Total score:' + str(self.score))
+            info = 'You lose! You hit a wall! Total score: ' + str(self.score)
+
 
         # lose the game if eating itself
         elif [new_head_y, new_head_x] in self.snake_loc[1:]:
             is_dead = True
             reward = -1
-            print('You lose! You ate yourself!!!')
-            print('Total score:' + str(self.score))
+            info = 'You lose! You ate yourself! Total score: ' + str(self.score)
 
         else:
             is_dead = False
@@ -142,7 +138,7 @@ class Environment:
             if self.food[new_head_y, new_head_x] == 0.3:
                 reward = 1
                 self.score += reward
-                print('Score!!! +' + str(reward) + ' point(s)')
+                info = 'Score!!! +' + str(reward) + ' point(s)'
 
                 # generate new food
                 food_y, food_x = random.choice(np.argwhere(self.base + self.food + self.snake == 0))
@@ -150,13 +146,11 @@ class Environment:
 
             else:
                 reward = 0
+                info = None
 
             plt.clf()
             plt.imshow(self.base + self.food + self.snake)
             plt.pause(self.frame_rate)
 
         next_state = np.stack([self.base, self.food, self.snake])
-        self.experience_pool[-1].append(reward)
-        self.experience_pool[-1].append(next_state)
-
-        return self.momentum, is_dead
+        return next_state, reward, is_dead, info

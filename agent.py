@@ -1,22 +1,28 @@
 import random
-#from model import Net
+from model import Net
 
 action_space = ['L', 'R', 'U', 'D', 'N']
-opposite_action = {'L': 'R', 'R': 'L', 'U': 'D', 'D': 'U'}
 
 class Base_Agent:
     def __init__(self):
         self.action_space = action_space
-        self.opposite_action = opposite_action
+        self.experience_pool = []
+        self.brain = None
 
-    def get_action(self, momentum):
-        temp_action_space = self.action_space.copy()
-        temp_action_space.remove(self.opposite_action[momentum])
-        action = random.choice(temp_action_space)
+    def get_action(self):
+        action = random.choice(self.action_space)
         return action
 
+    def collect_experience(self, state, action, reward, next_state):
+        self.experience_pool.append([state, action, reward, next_state])
+
+
 class Random_Agent(Base_Agent):
-    pass
+    def __init__(self):
+        super().__init__()
+
 
 class NN_Agent(Base_Agent):
-    pass
+    def __init__(self):
+        super().__init__()
+        self.brain = Net()
