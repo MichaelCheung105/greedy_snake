@@ -7,11 +7,15 @@ frames = 10**6
 height = 20
 frame_rate = 0.01
 agent = 'NN'  # random / NN
-NN_layers = 3
-epsilon = 0.5
-eval_net_threshold = 10
-target_net_threshold = 10
+layers = 3
+epsilon = 0
+gamma = 0.9
+learning_rate = 0.05
 mini_batch_size = 30
+experience_pool_size = 100
+eval_net_threshold = 30
+target_net_threshold = 10
+
 
 # Parameters based on config
 width = height // 2
@@ -22,11 +26,15 @@ if __name__ == "__main__":
 
     # Determine which agent to use
     if agent == 'random':
-        agent = Random_Agent()
+        agent = Random_Agent(experience_pool_size=experience_pool_size)
 
     elif agent == 'NN':
-        agent = NN_Agent(shape=(height, width, NN_layers)
+        agent = NN_Agent(shape=(height, width, layers)
                          , epsilon=epsilon
+                         , gamma=gamma
+                         , learning_rate=learning_rate
+                         , mini_batch_size=mini_batch_size
+                         , experience_pool_size=experience_pool_size
                          , eval_net_threshold=eval_net_threshold
                          , target_net_threshold=target_net_threshold
                          )
