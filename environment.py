@@ -3,7 +3,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 class Environment:
-    def __init__(self, height=20, frame_rate=0.1):
+    def __init__(self, height, width, frame_rate):
         if height < 20:
             print('Height must be larger or equal to 20!!! Initialize the environment again!!!')
         else:
@@ -12,7 +12,7 @@ class Environment:
 
             # Set arena
             self.height = height
-            self.width = height // 2
+            self.width = width
             self.arena = np.zeros(shape=(self.height, self.width), dtype=float)
 
             # Set the starting base, edges and score of each game
@@ -66,8 +66,8 @@ class Environment:
         plt.imshow(self.base + self.food + self.snake)
         plt.pause(self.frame_rate)
 
-        state = np.stack([self.base, self.food, self.snake])
-        return state, self.momentum
+        state = np.stack([self.base, self.food, self.snake], axis=-1)
+        return state
 
     def step(self, action):
         # determine new head of snake based on action
@@ -152,5 +152,5 @@ class Environment:
             plt.imshow(self.base + self.food + self.snake)
             plt.pause(self.frame_rate)
 
-        next_state = np.stack([self.base, self.food, self.snake])
+        next_state = np.stack([self.base, self.food, self.snake], axis=-1)
         return next_state, reward, is_dead, info
