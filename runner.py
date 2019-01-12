@@ -4,10 +4,10 @@ from agent import Random_Agent
 episode = 1000
 frames = 10**6
 height = 20
-frame_rate = 0.05
+frame_rate = 0.01
 
 if __name__ == "__main__":
-    env = Environment(height=height, frame_rate=0.05)
+    env = Environment(height=height, frame_rate=frame_rate)
     agent = Random_Agent()
 
     for game in range(episode):
