@@ -99,6 +99,7 @@ class Environment:
 
         else:
             return print('error: incorrect action input')
+            exit()
 
         '''determine result of action'''
         # update the snake_loc and snake board based on new move
@@ -112,7 +113,6 @@ class Environment:
             is_dead = True
             reward = -1
             info = 'You lose! You hit a wall! Total score: ' + str(self.score)
-
 
         # lose the game if eating itself
         elif [new_head_y, new_head_x] in self.snake_loc[1:]:
@@ -142,7 +142,7 @@ class Environment:
 
                 # generate new food
                 food_y, food_x = random.choice(np.argwhere(self.base + self.food + self.snake == 0))
-                self.base[food_y, food_x] = 0.3
+                self.food[food_y, food_x] = 0.3
 
             else:
                 reward = 0
