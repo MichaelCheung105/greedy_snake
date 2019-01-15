@@ -19,4 +19,3 @@ class Net:
         self.model.add(Dropout(0.2))
         self.model.add(Dense(5))
         self.model.compile(optimizer='adam', loss="mse")
-

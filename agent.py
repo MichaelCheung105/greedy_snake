@@ -1,20 +1,22 @@
 import random
 import numpy as np
-from model import Net
+from model import *
 
 action_space = ['L', 'R', 'U', 'D', 'N']
 
 
 class BaseAgent:
-    def __init__(self, experience_pool_size):
+    def __init__(self, experience_pool_size, shape):
         self.action_space = action_space
         self.experience_count = 0
         self.experience_pool_size = experience_pool_size
-        self.experience_pool = [None] * experience_pool_size
+        self.state_shape = shape
+        self.experience_pool = np.zeros(shape=(experience_pool_size, np.prod(shape) * 2 + 3))
 
     def collect_experience(self, state, action, reward, next_state, done):
         index = self.experience_count % self.experience_pool_size
-        self.experience_pool[index] = (state, action, reward, next_state, done)
+        action = self.action_space.index(action)
+        self.experience_pool[index, :] = np.hstack((state.flatten(), action, reward, next_state.flatten(), done))
         self.experience_count += 1
 
     def agent_specific_method(self):
@@ -22,8 +24,8 @@ class BaseAgent:
 
 
 class RandomAgent(BaseAgent):
-    def __init__(self, experience_pool_size):
-        super().__init__(experience_pool_size=experience_pool_size)
+    def __init__(self, experience_pool_size, shape):
+        super().__init__(experience_pool_size=experience_pool_size, shape=shape)
 
     def get_action(self, state):
         action = random.choice(self.action_space)
@@ -33,7 +35,7 @@ class RandomAgent(BaseAgent):
 class NNAgent(BaseAgent):
     def __init__(self, shape, epsilon, gamma, learning_rate, mini_batch_size, experience_pool_size
                  , eval_net_threshold, target_net_threshold):
-        super().__init__(experience_pool_size=experience_pool_size)
+        super().__init__(experience_pool_size=experience_pool_size, shape=shape)
         self.name = 'NN'
         self.eval_net = Net(shape, learning_rate)
         self.target_net = Net(shape, learning_rate)

@@ -26,7 +26,7 @@ if __name__ == "__main__":
 
     # Determine which agent to use
     if agent == 'random':
-        agent = RandomAgent(experience_pool_size=experience_pool_size)
+        agent = RandomAgent(experience_pool_size=experience_pool_size, shape=(height, width, layers))
 
     elif agent == 'NN':
         agent = NNAgent(shape=(height, width, layers)
