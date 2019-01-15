@@ -59,20 +59,21 @@ class NNAgent(BaseAgent):
         return action
 
     def update_eval_net(self):
-        samples = random.sample(self.experience_pool, self.mini_batch_size)
+        sample_index = random.sample(range(self.experience_pool_size), self.mini_batch_size)
+        samples = self.experience_pool[sample_index, :]
 
-        for sample in samples:
-            state, action, reward, next_state, done = sample
-
-            if done:
-                target = reward
-            else:
-                input_state = np.expand_dims(next_state, axis=0)
-                next_q_values = self.target_net.model.predict(input_state)[0]
-                target = reward + self.gamma * np.max(next_q_values)
-
-            input_state = np.expand_dims(state, axis=0)
-            self.eval_net.model.fit(input_state, target, epochs=1, verbose=0)
+        # for sample in samples:
+        #     state, action, reward, next_state, done = sample
+        #
+        #     if done:
+        #         target = reward
+        #     else:
+        #         input_state = np.expand_dims(next_state, axis=0)
+        #         next_q_values = self.target_net.model.predict(input_state)[0]
+        #         target = reward + self.gamma * np.max(next_q_values)
+        #
+        #     input_state = np.expand_dims(state, axis=0)
+        #     self.eval_net.model.fit(input_state, target, epochs=1, verbose=0)
 
     def update_target_net(self):
         pass
