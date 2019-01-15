@@ -11,6 +11,7 @@ class BaseAgent:
         self.experience_count = 0
         self.experience_pool_size = experience_pool_size
         self.state_shape = shape
+        self.state_size = np.prod(shape)
         self.experience_pool = np.zeros(shape=(experience_pool_size, np.prod(shape) * 2 + 3))
 
     def collect_experience(self, state, action, reward, next_state, done):
@@ -62,18 +63,18 @@ class NNAgent(BaseAgent):
         sample_index = random.sample(range(self.experience_pool_size), self.mini_batch_size)
         samples = self.experience_pool[sample_index, :]
 
-        # for sample in samples:
-        #     state, action, reward, next_state, done = sample
-        #
-        #     if done:
-        #         target = reward
-        #     else:
-        #         input_state = np.expand_dims(next_state, axis=0)
-        #         next_q_values = self.target_net.model.predict(input_state)[0]
-        #         target = reward + self.gamma * np.max(next_q_values)
-        #
-        #     input_state = np.expand_dims(state, axis=0)
-        #     self.eval_net.model.fit(input_state, target, epochs=1, verbose=0)
+        shape = (-1, self.state_shape[0], self.state_shape[1], self.state_shape[2])
+
+        state = samples[:, 0:self.state_size].reshape(shape)
+        action = samples[:, self.state_size:self.state_size+1]
+        reward = samples[:, self.state_size+1:self.state_size+2]
+        next_state = samples[:, self.state_size+2:-1].reshape(shape)
+        done = samples[:, -1]
+
+        next_q_values = np.amax(self.target_net.model.predict(next_state), axis=1)
+        target = reward.reshape(-1) + self.gamma * next_q_values * (abs(done - 1))
+
+        self.eval_net.model.fit(state, target, epochs=1, verbose=0)
 
     def update_target_net(self):
         pass
