@@ -2,6 +2,7 @@ import random
 import numpy as np
 import matplotlib.pyplot as plt
 
+
 class Environment:
     def __init__(self, height, width, frame_rate):
         if height < 20:
@@ -30,7 +31,7 @@ class Environment:
             plt.ion()
             plt.figure()
 
-    def start_new_game(self):
+    def reset(self):
         # Set the base and define edges
         self.base = self.arena.copy()
         self.base[[0, -1], :] = 1.0

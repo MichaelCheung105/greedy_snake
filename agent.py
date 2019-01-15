@@ -4,23 +4,24 @@ from model import Net
 
 action_space = ['L', 'R', 'U', 'D', 'N']
 
-class Base_Agent:
+
+class BaseAgent:
     def __init__(self, experience_pool_size):
         self.action_space = action_space
         self.experience_count = 0
         self.experience_pool_size = experience_pool_size
         self.experience_pool = [None] * experience_pool_size
 
-    def collect_experience(self, state, action, reward, next_state):
+    def collect_experience(self, state, action, reward, next_state, done):
         index = self.experience_count % self.experience_pool_size
-        self.experience_pool[index] = [state, action, reward, next_state]
+        self.experience_pool[index] = (state, action, reward, next_state, done)
         self.experience_count += 1
 
     def agent_specific_method(self):
         pass
 
 
-class Random_Agent(Base_Agent):
+class RandomAgent(BaseAgent):
     def __init__(self, experience_pool_size):
         super().__init__(experience_pool_size=experience_pool_size)
 
@@ -29,13 +30,13 @@ class Random_Agent(Base_Agent):
         return action
 
 
-class NN_Agent(Base_Agent):
+class NNAgent(BaseAgent):
     def __init__(self, shape, epsilon, gamma, learning_rate, mini_batch_size, experience_pool_size
                  , eval_net_threshold, target_net_threshold):
         super().__init__(experience_pool_size=experience_pool_size)
         self.name = 'NN'
-        self.eval_net = Net(shape)
-        self.target_net = Net(shape)
+        self.eval_net = Net(shape, learning_rate)
+        self.target_net = Net(shape, learning_rate)
         self.epsilon = epsilon
         self.gamma = gamma
         self.learning_rate = learning_rate
@@ -57,13 +58,19 @@ class NN_Agent(Base_Agent):
 
     def update_eval_net(self):
         samples = random.sample(self.experience_pool, self.mini_batch_size)
-        stacked_samples = np.stack(samples, axis=0)
-        states = stacked_samples[:,0]
-        rewards = stacked_samples[:,2]
-        next_states = stacked_samples[:,3]
-        target = rewards + self.gamma * self.target_net.predict(next_states)
-        self.eval_net.fit(states, target, epochs=1, verbose=0)
-        pass
+
+        for sample in samples:
+            state, action, reward, next_state, done = sample
+
+            if done:
+                target = reward
+            else:
+                input_state = np.expand_dims(next_state, axis=0)
+                next_q_values = self.target_net.model.predict(input_state)[0]
+                target = reward + self.gamma * np.max(next_q_values)
+
+            input_state = np.expand_dims(state, axis=0)
+            self.eval_net.model.fit(input_state, target, epochs=1, verbose=0)
 
     def update_target_net(self):
         pass

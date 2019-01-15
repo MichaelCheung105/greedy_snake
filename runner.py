@@ -3,10 +3,10 @@ from agent import *
 
 # Config Parameters
 episode = 1000
-frames = 10**6
+frames = 10**10
 height = 20
 frame_rate = 0.01
-agent = 'random'  # random / NN
+agent = 'NN'  # random / NN
 layers = 3
 epsilon = 0
 gamma = 0.9
@@ -26,10 +26,10 @@ if __name__ == "__main__":
 
     # Determine which agent to use
     if agent == 'random':
-        agent = Random_Agent(experience_pool_size=experience_pool_size)
+        agent = RandomAgent(experience_pool_size=experience_pool_size)
 
     elif agent == 'NN':
-        agent = NN_Agent(shape=(height, width, layers)
+        agent = NNAgent(shape=(height, width, layers)
                          , epsilon=epsilon
                          , gamma=gamma
                          , learning_rate=learning_rate
@@ -45,13 +45,13 @@ if __name__ == "__main__":
 
     # Start training
     for game in range(episode):
-        state = env.start_new_game()
+        state = env.reset()
 
         for frame in range(frames):
             # determine state, action and reward
             action = agent.get_action(state)
-            next_state, reward, is_dead, info = env.step(action)
-            agent.collect_experience(state, action, reward, next_state)
+            next_state, reward, done, info = env.step(action)
+            agent.collect_experience(state, action, reward, next_state, done)
             state = next_state
 
             # execute specific method for the agent
@@ -60,6 +60,6 @@ if __name__ == "__main__":
             if info is not None:
                 print(info)
 
-            if is_dead:
+            if done:
                 break
 
