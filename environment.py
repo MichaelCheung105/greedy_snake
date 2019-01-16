@@ -139,14 +139,14 @@ class Environment:
             if self.food[new_head_y, new_head_x] == 0.3:
                 reward = (self.height * self.height // 2)
                 self.score += 1
-                info = 'Score!!! +' + str(reward) + ' point(s)'
+                info = 'Score!!! +' + str(1) + ' point(s)'
 
                 # generate new food
                 food_y, food_x = random.choice(np.argwhere(self.base + self.food + self.snake == 0))
                 self.food[food_y, food_x] = 0.3
 
             else:
-                reward = -1
+                reward = 1
                 info = None
 
             plt.clf()
