@@ -112,13 +112,13 @@ class Environment:
         # lose the game if hitting edges
         if [new_head_y, new_head_x] in self.edges:
             is_dead = True
-            reward = -1
+            reward = -(self.height * self.height//2)
             info = 'You lose! You hit a wall! Total score: ' + str(self.score)
 
         # lose the game if eating itself
         elif [new_head_y, new_head_x] in self.snake_loc[1:]:
             is_dead = True
-            reward = -1
+            reward = -(self.height * self.height // 2)
             info = 'You lose! You ate yourself! Total score: ' + str(self.score)
 
         else:
@@ -137,8 +137,8 @@ class Environment:
 
             # score if the new_head reaches food
             if self.food[new_head_y, new_head_x] == 0.3:
-                reward = 1
-                self.score += reward
+                reward = (self.height * self.height // 2)
+                self.score += 1
                 info = 'Score!!! +' + str(reward) + ' point(s)'
 
                 # generate new food
@@ -146,7 +146,7 @@ class Environment:
                 self.food[food_y, food_x] = 0.3
 
             else:
-                reward = 0
+                reward = -1
                 info = None
 
             plt.clf()

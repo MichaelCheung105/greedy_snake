@@ -2,14 +2,14 @@ from environment import Environment
 from agent import *
 
 # Config Parameters
-episode = 1000
+episode = 1000000
 frames = 10**10
 height = 20
 frame_rate = 0.01
 agent = 'NN'  # random / NN
 layers = 3
-epsilon = 0
-gamma = 0.9
+epsilon = 0.1
+gamma = 1
 learning_rate = 0.05
 mini_batch_size = 30
 experience_pool_size = 100

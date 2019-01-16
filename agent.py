@@ -66,18 +66,20 @@ class NNAgent(BaseAgent):
         shape = (-1, self.state_shape[0], self.state_shape[1], self.state_shape[2])
 
         state = samples[:, 0:self.state_size].reshape(shape)
-        action = samples[:, self.state_size:self.state_size+1]
-        reward = samples[:, self.state_size+1:self.state_size+2]
+        action = samples[:, self.state_size:self.state_size+1].reshape(-1).astype(int)
+        reward = samples[:, self.state_size+1:self.state_size+2].reshape(-1)
         next_state = samples[:, self.state_size+2:-1].reshape(shape)
         done = samples[:, -1]
 
-        next_q_values = np.amax(self.target_net.model.predict(next_state), axis=1)
-        target = reward.reshape(-1) + self.gamma * next_q_values * (abs(done - 1))
+        q_values = self.eval_net.model.predict(state)
+        max_q_values = np.amax(self.target_net.model.predict(next_state), axis=1)
+        target = reward + self.gamma * max_q_values * (abs(done - 1))
+        q_values[(np.array(range(self.mini_batch_size)), action)] = target
 
-        self.eval_net.model.fit(state, target, epochs=1, verbose=0)
+        self.eval_net.model.train_on_batch(state, q_values)
 
     def update_target_net(self):
-        pass
+        self.target_net.model.set_weights(self.eval_net.model.get_weights())
 
     def agent_specific_method(self):
         # update eval_net_count
