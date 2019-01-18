@@ -14,6 +14,10 @@ class BaseAgent:
         self.state_size = np.prod(shape)
         self.experience_pool = np.zeros(shape=(experience_pool_size, np.prod(shape) * 2 + 3))
 
+    def get_action(self, state):
+        action = random.choice(self.action_space)
+        return action
+
     def collect_experience(self, state, action, reward, next_state, done):
         index = self.experience_count % self.experience_pool_size
         action = self.action_space.index(action)
@@ -27,10 +31,6 @@ class BaseAgent:
 class RandomAgent(BaseAgent):
     def __init__(self, experience_pool_size, shape):
         super().__init__(experience_pool_size=experience_pool_size, shape=shape)
-
-    def get_action(self, state):
-        action = random.choice(self.action_space)
-        return action
 
 
 class NNAgent(BaseAgent):
@@ -81,7 +81,12 @@ class NNAgent(BaseAgent):
     def update_target_net(self):
         self.target_net.model.set_weights(self.eval_net.model.get_weights())
 
-    def agent_specific_method(self):
+    def agent_specific_method(self, game, model_saving_threshold):
+        # save model every 1000 games
+        if game % model_saving_threshold == 0:
+            self.eval_net.model.save_weights("eval_net_model.h5")
+            self.target_net.model.save_weights("target_net_model.h5")
+
         # update eval_net_count
         self.eval_net_count += 1
 

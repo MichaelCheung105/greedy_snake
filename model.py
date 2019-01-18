@@ -6,9 +6,9 @@ from keras.layers.normalization import BatchNormalization
 class Net:
     def __init__(self, shape, learning_rate):
         self.model = Sequential()
-        self.model.add(Conv2D(32, kernel_size=3, padding='same', activation='relu', input_shape=shape))
+        self.model.add(Conv2D(32, kernel_size=8, padding='same', activation='relu', input_shape=shape))
         self.model.add(Dropout(0.2))
-        self.model.add(Conv2D(64, kernel_size=3, padding='same', activation='relu'))
+        self.model.add(Conv2D(64, kernel_size=5, padding='same', activation='relu'))
         self.model.add(Dropout(0.2))
         self.model.add(Conv2D(128, kernel_size=3, padding='same', activation='relu'))
         self.model.add(Flatten())
