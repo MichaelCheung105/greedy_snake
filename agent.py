@@ -74,13 +74,13 @@ class NNAgent(BaseAgent):
 
         if self.is_enable_ddqn:
             max_q_index = np.argmax(self.eval_net.model.predict(next_state), axis=1)
-            next_q_values = self.target_net.model.predict(next_state)[max_q_index]
+            next_q_values = self.target_net.model.predict(next_state)[(range(self.mini_batch_size), max_q_index)]
         else:
             next_q_values = np.amax(self.target_net.model.predict(next_state), axis=1)
 
         q_values = self.eval_net.model.predict(state)
         target = reward + self.gamma * next_q_values * (abs(done - 1))
-        q_values[(np.array(range(self.mini_batch_size)), action)] = target
+        q_values[(range(self.mini_batch_size), action)] = target
 
         self.eval_net.model.train_on_batch(state, q_values)
 
