@@ -24,7 +24,7 @@ class BaseAgent:
         self.experience_pool[index, :] = np.hstack((state.flatten(), action, reward, next_state.flatten(), done))
         self.experience_count += 1
 
-    def agent_specific_method(self):
+    def agent_specific_method(self, *args, **kwargs):
         pass
 
 
@@ -35,7 +35,7 @@ class RandomAgent(BaseAgent):
 
 class NNAgent(BaseAgent):
     def __init__(self, shape, epsilon, gamma, learning_rate, mini_batch_size, experience_pool_size
-                 , eval_net_threshold, target_net_threshold):
+                 , eval_net_threshold, target_net_threshold, is_enable_ddqn):
         super().__init__(experience_pool_size=experience_pool_size, shape=shape)
         self.name = 'NN'
         self.eval_net = Net(shape, learning_rate)
@@ -48,6 +48,7 @@ class NNAgent(BaseAgent):
         self.target_net_threshold = target_net_threshold
         self.eval_net_count = 0
         self.target_net_count = 0
+        self.is_enable_ddqn = is_enable_ddqn
 
     def get_action(self, state):
         if np.random.rand() < self.epsilon:
@@ -71,9 +72,14 @@ class NNAgent(BaseAgent):
         next_state = samples[:, self.state_size+2:-1].reshape(shape)
         done = samples[:, -1]
 
+        if self.is_enable_ddqn:
+            max_q_index = np.argmax(self.eval_net.model.predict(next_state), axis=1)
+            next_q_values = self.target_net.model.predict(next_state)[max_q_index]
+        else:
+            next_q_values = np.amax(self.target_net.model.predict(next_state), axis=1)
+
         q_values = self.eval_net.model.predict(state)
-        max_q_values = np.amax(self.target_net.model.predict(next_state), axis=1)
-        target = reward + self.gamma * max_q_values * (abs(done - 1))
+        target = reward + self.gamma * next_q_values * (abs(done - 1))
         q_values[(np.array(range(self.mini_batch_size)), action)] = target
 
         self.eval_net.model.train_on_batch(state, q_values)

@@ -16,6 +16,7 @@ mini_batch_size = 30
 experience_pool_size = 100
 eval_net_threshold = 30
 target_net_threshold = 10
+is_enable_ddqn = True
 
 
 # Parameters based on config
@@ -38,6 +39,7 @@ if __name__ == "__main__":
                         , experience_pool_size=experience_pool_size
                         , eval_net_threshold=eval_net_threshold
                         , target_net_threshold=target_net_threshold
+                        , is_enable_ddqn=is_enable_ddqn
                         )
 
     else:
