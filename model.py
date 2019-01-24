@@ -13,5 +13,5 @@ class Net:
         self.model.add(Dense(128, activation='relu'))
         self.model.add(Dense(64, activation='relu'))
         self.model.add(Dense(32, activation='relu'))
-        self.model.add(Dense(5, activation='linear'))
+        self.model.add(Dense(4, activation='linear'))
         self.model.compile(optimizer='adam', loss="mae")

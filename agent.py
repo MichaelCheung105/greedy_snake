@@ -2,11 +2,13 @@ import random
 import numpy as np
 from model import *
 
-action_space = ['L', 'R', 'U', 'D', 'N']
+action_space = ['L', 'R', 'U', 'D']
 
 
 class BaseAgent:
     def __init__(self, experience_pool_size, shape):
+        self.name = None
+        self.is_test_mode = False
         self.action_space = action_space
         self.experience_count = 0
         self.experience_pool_size = experience_pool_size
@@ -31,11 +33,12 @@ class BaseAgent:
 class RandomAgent(BaseAgent):
     def __init__(self, experience_pool_size, shape):
         super().__init__(experience_pool_size=experience_pool_size, shape=shape)
+        self.name = 'random'
 
 
 class NNAgent(BaseAgent):
     def __init__(self, shape, epsilon, gamma, learning_rate, mini_batch_size, experience_pool_size
-                 , eval_net_threshold, target_net_threshold, is_enable_ddqn):
+                 , eval_net_threshold, target_net_threshold, model_saving_threshold, is_enable_ddqn):
         super().__init__(experience_pool_size=experience_pool_size, shape=shape)
         self.name = 'NN'
         self.eval_net = Net(shape, learning_rate)
@@ -48,15 +51,18 @@ class NNAgent(BaseAgent):
         self.target_net_threshold = target_net_threshold
         self.eval_net_count = 0
         self.target_net_count = 0
+        self.eval_net_update_count = 0
+        self.target_net_update_count = 0
+        self.model_saving_threshold = model_saving_threshold
         self.is_enable_ddqn = is_enable_ddqn
 
     def get_action(self, state):
-        if np.random.rand() < self.epsilon:
-            action = random.choice(self.action_space)
-        else:
+        if self.is_test_mode or np.random.rand() >= self.epsilon:
             input_state = np.expand_dims(state, axis=0)
             q_values = self.eval_net.model.predict(input_state)[0]
             action = self.action_space[np.argmax(q_values)]
+        else:
+            action = random.choice(self.action_space)
 
         return action
 
@@ -87,23 +93,26 @@ class NNAgent(BaseAgent):
     def update_target_net(self):
         self.target_net.model.set_weights(self.eval_net.model.get_weights())
 
-    def agent_specific_method(self, game, model_saving_threshold):
-        # save model every 1000 games
-        if game % model_saving_threshold == 0:
-            self.eval_net.model.save_weights("eval_net_model.h5")
-            self.target_net.model.save_weights("target_net_model.h5")
+    def agent_specific_method(self, game):
+        if not self.is_test_mode:
+            # save model every 'model_saving_threshold' games
+            if game % self.model_saving_threshold == 0:
+                self.eval_net.model.save_weights("eval_net_model.h5")
+                self.target_net.model.save_weights("target_net_model.h5")
 
-        # update eval_net_count
-        self.eval_net_count += 1
+            # update eval_net_count
+            self.eval_net_count += 1
 
-        if self.experience_count >= self.experience_pool_size:
-            # update eval net
-            if self.eval_net_count > self.eval_net_threshold:
-                self.update_eval_net()
-                self.eval_net_count = 0
-                self.target_net_count += 1
+            if self.experience_count >= self.experience_pool_size:
+                # update eval net
+                if self.eval_net_count > self.eval_net_threshold:
+                    self.update_eval_net()
+                    self.eval_net_count = 0
+                    self.eval_net_update_count += 1
+                    self.target_net_count += 1
 
-            # update target_net
-            if self.target_net_count > self.target_net_threshold:
-                self.update_target_net()
-                self.target_net_count = 0
+                # update target_net
+                if self.target_net_count > self.target_net_threshold:
+                    self.update_target_net()
+                    self.target_net_count = 0
+                    self.target_net_update_count += 1

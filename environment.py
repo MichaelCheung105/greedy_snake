@@ -5,8 +5,8 @@ import matplotlib.pyplot as plt
 
 class Environment:
     def __init__(self, height, width, frame_rate):
-        if height < 20:
-            print('Height must be larger or equal to 20!!! Initialize the environment again!!!')
+        if height < 7 or width < 7:
+            print('Height and Width must be larger or equal to 7!!!')
         else:
             # Set frame_rate
             self.frame_rate = frame_rate
@@ -46,8 +46,8 @@ class Environment:
         self.tail_y, self.tail_x = self.head_y, self.head_x + 2
 
         self.snake[self.head_y, self.head_x] = 0.7
-        self.snake[self.second_y, self.second_x] = 0.6
-        self.snake[self.tail_y, self.tail_x] = 0.6
+        self.snake[self.second_y, self.second_x] = 0.4
+        self.snake[self.tail_y, self.tail_x] = 0.4
         self.snake_loc = [[self.head_y, self.head_x], [self.second_y, self.second_x], [self.tail_y, self.tail_x]]
 
         self.momentum = 'L'
@@ -72,7 +72,7 @@ class Environment:
 
     def step(self, action):
         # determine new head of snake based on action
-        if action == 'N' or self.opposite_action[action] == self.momentum:
+        if self.opposite_action[action] == self.momentum:
             processed_action = self.momentum
 
         else:
@@ -99,26 +99,26 @@ class Environment:
             new_head_x = self.head_x
 
         else:
-            return print('error: incorrect action input')
+            print('error: incorrect action input')
             exit()
 
         '''determine result of action'''
         # update the snake_loc and snake board based on new move
         self.snake[new_head_y, new_head_x] = 0.7
-        self.snake[self.head_y, self.head_x] = 0.6
+        self.snake[self.head_y, self.head_x] = 0.4
         self.snake[self.tail_y, self.tail_x] = 0.0
         self.snake_loc = [[new_head_y, new_head_x]] + self.snake_loc
 
         # lose the game if hitting edges
         if [new_head_y, new_head_x] in self.edges:
             is_dead = True
-            reward = -(self.height * self.height//2)
+            reward = -1
             info = 'You lose! You hit a wall! Total score: ' + str(self.score)
 
         # lose the game if eating itself
         elif [new_head_y, new_head_x] in self.snake_loc[1:]:
             is_dead = True
-            reward = -(self.height * self.height // 2)
+            reward = -1
             info = 'You lose! You ate yourself! Total score: ' + str(self.score)
 
         else:
@@ -127,7 +127,7 @@ class Environment:
             # if the food is at the tail of the snake, transform the food into the new tail of the snake
             if self.food[self.tail_y, self.tail_x] == 0.3:
                 self.food[self.tail_y, self.tail_x] = 0.0
-                self.snake[self.tail_y, self.tail_x] = 0.6
+                self.snake[self.tail_y, self.tail_x] = 0.4
             else:
                 self.snake_loc.pop(-1)
 
@@ -137,7 +137,7 @@ class Environment:
 
             # score if the new_head reaches food
             if self.food[new_head_y, new_head_x] == 0.3:
-                reward = (self.height * self.height // 2)
+                reward = 1
                 self.score += 1
                 info = 'Score!!! +' + str(1) + ' point(s)'
 
@@ -146,7 +146,7 @@ class Environment:
                 self.food[food_y, food_x] = 0.3
 
             else:
-                reward = 1
+                reward = -0.01
                 info = None
 
             plt.clf()
